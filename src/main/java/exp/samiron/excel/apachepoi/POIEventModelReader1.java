@@ -131,7 +131,7 @@ public class POIEventModelReader1 {
                 this.currentCellReference = null;
             } else if (name.equals("f")){
                 this.handlingFormula = false;
-                System.out.println("Formula: " + this.formula);
+                //System.out.println("Formula: " + this.formula);
             }
         }
 
