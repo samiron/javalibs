@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class POIExcelTransformer {
 
-    private POIEventModelReader1 excelReader = null;
+    private POIEventModelReader excelReader = null;
     private SXSSFWorkbook outputExcel = null;
     private SXSSFSheet currentSheet;
     private String outputFilePath = null;
@@ -31,13 +31,23 @@ public class POIExcelTransformer {
     	
         String inputfile = args[0];
         String outfile = inputfile.replace(".xlsx", "_resolved.xlsx");
-        System.out.println(inputfile + ", " + outfile);
-
+        System.out.println(String.format("Input: %s\nOutput: %s\n", inputfile, outfile));
+        
+        long beginTS = System.currentTimeMillis();
+        POIExcelTransformer.printMemStatus("before initialize");
         POIExcelTransformer poiHybrid = new POIExcelTransformer();
         poiHybrid.initReader(inputfile);
         poiHybrid.initWriter(outfile);
+        long convertTS = System.currentTimeMillis();
+        POIExcelTransformer.printMemStatus("before converstion");
         poiHybrid.convert();
+        long finishTS = System.currentTimeMillis();
+        POIExcelTransformer.printMemStatus("after converstion");
         System.out.println("Done. Transformed file is saved as: " + outfile);
+        System.out.println("\nstart ts: " + Long.toString(beginTS));
+        System.out.println("conversion stated ts: " + Long.toString(convertTS));
+        System.out.println("conversion finished ts: " + Long.toString(finishTS));
+        System.out.println("converstion time: " + Long.toString(finishTS-convertTS));
     }
     
     public POIExcelTransformer(){
@@ -54,8 +64,8 @@ public class POIExcelTransformer {
     }
 
     private void initReader(String inputFile){
-        this.excelReader = new POIEventModelReader1(inputFile);
-        this.excelReader.setCellValueListner(new POIEventModelReader1.CellValueListener() {
+        this.excelReader = new POIEventModelReader(inputFile);
+        this.excelReader.setCellValueListner(new POIEventModelReader.CellValueListener() {
             public void cellValueFound(String reference, String value) {
                 POIExcelTransformer.this.writeCellValue(reference, value);
             }
@@ -108,5 +118,11 @@ public class POIExcelTransformer {
             colNum += ((int)Math.pow(26,l)) * (c - 'A' + 1);
         }
         return colNum;
+    }
+    
+    public static void printMemStatus(String footprint){
+    	long total = Runtime.getRuntime().totalMemory();
+    	long free = Runtime.getRuntime().freeMemory();
+    	System.out.println(String.format("%s: used: %10d (of: %10d)", footprint, (total-free), total, free));
     }
 }
